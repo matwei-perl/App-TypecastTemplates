@@ -1,5 +1,9 @@
 Revision history for App-TypecastTemplates
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+v0.1.0    Tue Jul 27 13:57:47 CEST 2021
+        - Basically working
+	- Added dependencies to Build.PL
+	- Edited README
+	- Added example script
+	- Use v$revision.$version.$subversion numbering
 

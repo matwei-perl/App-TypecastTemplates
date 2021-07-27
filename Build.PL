@@ -10,17 +10,18 @@ my $builder = Module::Build->new(
     dist_author         => q{Mathias Weidner <mamawe@cpan.org>},
     dist_version_from   => 'lib/App/TypecastTemplates.pm',
     release_status      => 'stable',
-    configure_requires => {
+    configure_requires  => {
         'Module::Build' => '0.4004',
     },
     test_requires => {
-        'Test::More' => '0',
+        'Test::More'    => '0',
     },
     requires => {
-        #'ABC'              => '1.6',
-        #'Foo::Bar::Module' => '5.0401',
+        'Template'      => 0,
+        'Text::CSV'     => 0,
     },
-    add_to_cleanup     => [ 'App-TypecastTemplates-*' ],
+    add_to_cleanup      => [ 'App-TypecastTemplates-*' ],
+    script_files        => [ 'bin/create_loginrc' ],
 );
 
 $builder->create_build_script();

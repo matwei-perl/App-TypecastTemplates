@@ -4,50 +4,92 @@ use 5.006;
 use strict;
 use warnings;
 
+use Template;
+use Text::CSV;
+
 =head1 NAME
 
-App::TypecastTemplates - The great new App::TypecastTemplates!
+App::TypecastTemplates - Format records with different templates.
 
 =head1 VERSION
 
-Version 0.01
+Version v0.1.0
 
 =cut
 
-our $VERSION = '0.01';
-
+our $VERSION = 'v0.1.0';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+This module allows to print records from a table using different templates.
+The template to be used for a record is chosen by the value of the column
+named "type" for that record.
+The table is expected to be CSV formatted.
 
-Perhaps a little code snippet.
+The module can be used without any script using the following command line:
 
-    use App::TypecastTemplates;
+    perl -M App::TypecastTemplates -e tt_run
 
-    my $foo = App::TypecastTemplates->new();
-    ...
+It expects the table in CSV format at STDIN and prints the formatted records
+to STDOUT.
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+This module exports the function C<< run >>, that does the formatting.
+
+=cut
+
+our @EXPORT = qw( tt_run );
+use Exporter;
+our @ISA = qw( Exporter );
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 tt_run
 
 =cut
 
-sub function1 {
-}
+sub tt_run {
+	my $tmpl = _read_templates(\*DATA);
+	my $tt = new Template();
+	my $csv = Text::CSV->new({
+			binary => 1,
+			auto_diag => 1,
+			sep_char => ',',
+		});
+	my $fn = $main::ARGS[0] || '-';
+	open(my $handle, '<' . $fn)
+		or die "can't open credentials file '$fn'";
+	my @cols = $csv->getline( $handle );
+	$csv->column_names( @cols );
+	while (my $r = $csv->getline_hr( $handle )) {
+		if (exists $tmpl->{$r->{type}}) {
+			my $template = $tmpl->{$r->{type}};
+			$tt->process(\$template, $r);
+		}
+		else {
+			die "No template for type '$r->{type}'";
+		}
+	}
+} # tt_run()
 
-=head2 function2
+#--- internal functions only ---
 
-=cut
+sub _read_templates {
+	my ($fh) = @_;
+	my $templates = {};
 
-sub function2 {
-}
+	while (my $tl = <$fh>) {
+		my ($type,$line) = split /:/, $tl, 2;
+		if (exists $templates->{$type}) {
+			$templates->{$type} .= $line;
+		}
+		else {
+			$templates->{$type} = $line;
+		}
+	}
+	return $templates;
+} # _read_templates
 
 =head1 AUTHOR
 
@@ -58,9 +100,6 @@ Mathias Weidner, C<< <mamawe at cpan.org> >>
 Please report any bugs or feature requests to C<bug-app-typecasttemplates at rt.cpan.org>, or through
 the web interface at L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=App-TypecastTemplates>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 
@@ -107,3 +146,15 @@ This is free software, licensed under:
 =cut
 
 1; # End of App::TypecastTemplates
+
+__DATA__
+cisco:
+cisco:### [% name %] (cisco) ###
+cisco:add method [% name %] {ssh}
+cisco:add user [% name %] {[% user %]}
+cisco:add password [% name %] {[% password %]} {[% enablepw %]}
+mikrotik:
+mikrotik:### [% name %] (mikrotik) ###
+mikrotik:add method [% name %] {ssh}
+mikrotik:add user [% name %] {[% user %]}
+mikrotik:add password [% name %] {[% password %]}

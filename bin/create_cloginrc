@@ -1,0 +1,8 @@
+#!/usr/bin/env perl
+
+our $VERSION = 'v0.1.0';
+
+use App::TypecastTemplates;
+
+tt_run
+

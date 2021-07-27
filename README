@@ -1,16 +1,24 @@
 App-TypecastTemplates
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+Format records from a table with different templates.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+This module allows to print records from a table using different templates.
+The template to be used for a record is chosen by the value of the column
+named "type" for that record.
 
+The table is expected to be CSV formatted.
+
+The orignial use cas for this module is a script that allows to generate
+.cloginrc files for RANCID to easily add new credentials. The accompanying
+script does exact this and may be used as an example to create other scripts
+using this module.
+
+The module can be used without any script using the following command line:
+
+        perl -MApp::TypecastTemplates -e tt_run
+
+It expects the table in CSV format at STDIN and prints the formatted records
+to STDOUT.
 
 INSTALLATION
 
