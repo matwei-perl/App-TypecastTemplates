@@ -8,7 +8,7 @@ named "type" for that record.
 
 The table is expected to be CSV formatted.
 
-The orignial use cas for this module is a script that allows to generate
+The original use case for this module is a script that allows to generate
 .cloginrc files for RANCID to easily add new credentials. The accompanying
 script does exact this and may be used as an example to create other scripts
 using this module.
