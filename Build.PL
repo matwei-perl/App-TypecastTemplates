@@ -21,7 +21,7 @@ my $builder = Module::Build->new(
         'Text::CSV'     => 0,
     },
     add_to_cleanup      => [ 'App-TypecastTemplates-*' ],
-    script_files        => [ 'bin/create_loginrc' ],
+    script_files        => [ 'bin/create_cloginrc' ],
 );
 
 $builder->create_build_script();
