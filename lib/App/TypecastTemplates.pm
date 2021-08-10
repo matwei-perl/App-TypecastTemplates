@@ -13,11 +13,11 @@ App::TypecastTemplates - Format records with different templates.
 
 =head1 VERSION
 
-Version v0.1.0
+Version v0.2.0
 
 =cut
 
-our $VERSION = 'v0.1.0';
+our $VERSION = 'v0.2.0';
 
 =head1 SYNOPSIS
 
@@ -39,45 +39,81 @@ This module exports the function C<< run >>, that does the formatting.
 
 =cut
 
-our @EXPORT = qw( tt_run );
+our @EXPORT = qw( tt_run read_templates );
 use Exporter;
 our @ISA = qw( Exporter );
 
+my $templates = {};
+
 =head1 SUBROUTINES/METHODS
 
+=head2 tt_file
+
+Read a file that defines the templates.
+
+=cut
+
+sub tt_file {
+	my ($fn) = @_;
+	open(my $handle, '<' . $fn)
+		or die "can't open template file '$fn'";
+	read_template($handle);
+	close($handle);
+}
+
 =head2 tt_run
+
+Run the application as in
+
+  perl -MApp::TypecastTemplates -e tt_run
 
 =cut
 
 sub tt_run {
-	my $tmpl = _read_templates(\*DATA);
+
 	my $tt = new Template();
 	my $csv = Text::CSV->new({
 			binary => 1,
 			auto_diag => 1,
 			sep_char => ',',
 		});
-	my $fn = $main::ARGS[0] || '-';
+	my $fn = $main::ARGV[0] || '-';
+	if (!keys %$templates) {
+		print "\$0: $0\n";
+		if ($0 cmp '-e') {
+			read_templates(\*main::DATA);
+		}
+		if (!keys %$templates) {
+			read_templates(\*DATA);
+		}
+	}
 	open(my $handle, '<' . $fn)
 		or die "can't open credentials file '$fn'";
 	my @cols = $csv->getline( $handle );
 	$csv->column_names( @cols );
 	while (my $r = $csv->getline_hr( $handle )) {
-		if (exists $tmpl->{$r->{type}}) {
-			my $template = $tmpl->{$r->{type}};
+		if (exists $templates->{$r->{type}}) {
+			my $template = $templates->{$r->{type}};
+			$tt->process(\$template, $r);
+		}
+		elsif (exists $templates->{'*'}) {
+			my $template = $templates->{'*'};
 			$tt->process(\$template, $r);
 		}
 		else {
 			die "No template for type '$r->{type}'";
 		}
 	}
+	close($handle);
 } # tt_run()
 
-#--- internal functions only ---
+=head2 read_templates
 
-sub _read_templates {
+=cut
+
+sub read_templates {
 	my ($fh) = @_;
-	my $templates = {};
+	$templates = {};
 
 	while (my $tl = <$fh>) {
 		my ($type,$line) = split /:/, $tl, 2;
@@ -88,8 +124,7 @@ sub _read_templates {
 			$templates->{$type} = $line;
 		}
 	}
-	return $templates;
-} # _read_templates
+} # read_templates
 
 =head1 AUTHOR
 
@@ -148,13 +183,6 @@ This is free software, licensed under:
 1; # End of App::TypecastTemplates
 
 __DATA__
-cisco:
-cisco:### [% name %] (cisco) ###
-cisco:add method [% name %] {ssh}
-cisco:add user [% name %] {[% user %]}
-cisco:add password [% name %] {[% password %]} {[% enablepw %]}
-mikrotik:
-mikrotik:### [% name %] (mikrotik) ###
-mikrotik:add method [% name %] {ssh}
-mikrotik:add user [% name %] {[% user %]}
-mikrotik:add password [% name %] {[% password %]}
+*:
+*: You haven't defined any templates!
+*:
